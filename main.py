@@ -224,7 +224,8 @@ def main():
             f"📅 今天是{today} {weekday}\n"
             f"📍 地区：{CITY}\n",
             weather_block,
-            f"💕 今天是你我做母女的第 {love_days} 天\n{birthday_text}\n",
+            f"💕 今天是你我做母女的第 {love_days} 天\n",
+            f"{birthday_text}\n",
             extra_lines,
             "——————————",
             f"💛 {poetry}"
@@ -237,6 +238,7 @@ def main():
     send_wechat(message)
 if __name__ == "__main__":
     main()
+
 
 
 
