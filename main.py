@@ -198,11 +198,11 @@ def main():
 
     # ===== 构造天气块 =====
     weather_lines = [
-        f"🌤 今日天气：{weather}",
-        f"🌡 当前温度：{temp}℃",
-        f"🔺 最高气温：{temp_max}℃",
-        f"🔻 最低气温：{temp_min}℃",
-        f"🌧 降雨概率：{rain_probability}%"
+        f"🌤 今日天气：{weather}\n",
+        f"🌡 当前温度：{temp}℃\n",
+        f"🔺 最高气温：{temp_max}℃\n",
+        f"🔻 最低气温：{temp_min}℃\n",
+        f"🌧 降雨概率：{rain_probability}%\n"
     ]
 
     weather_block = "\n".join(weather_lines)
@@ -221,9 +221,10 @@ def main():
     message = "\n\n".join(
         part for part in [
             greeting,
-            f"📅 今天是{today} {weekday}\n📍 地区：{CITY}",
+            f"📅 今天是{today} {weekday}\n"
+            f"📍 地区：{CITY}\n",
             weather_block,
-            f"💕 今天是你我做母女的第 {love_days} 天\n{birthday_text}",
+            f"💕 今天是你我做母女的第 {love_days} 天\n{birthday_text}\n",
             extra_lines,
             "——————————",
             f"💛 {poetry}"
@@ -236,6 +237,7 @@ def main():
     send_wechat(message)
 if __name__ == "__main__":
     main()
+
 
 
 
