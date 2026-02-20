@@ -8,30 +8,34 @@ SENDKEY = os.getenv("SENDKEY_MOM")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 # ====== 你的基础信息（修改这里） ======
-CITY = "天津"
+CITY = "Tianjin"
 START_DATE = datetime(1995, 12, 8)  # 改成真实母女纪念日
-BIRTHDAY_MONTH = 3
-BIRTHDAY_DAY = 3
+# 农历生日（例如：正月三十）
+LUNAR_MONTH = 1
+LUNAR_DAY = 30
 # =====================================
 
 # 获取天气
 def get_weather():
-    url = "https://api.openweathermap.org/data/2.5/weather"
-    params = {
-        "q": CITY,
-        "appid": WEATHER_API_KEY,
-        "units": "metric",
-        "lang": "zh_cn"
-    }
-    r = requests.get(url, params=params)
-    data = r.json()
+    try:
+        url = "https://api.openweathermap.org/data/2.5/weather"
+        params = {
+            "q": CITY,
+            "appid": WEATHER_API_KEY,
+            "units": "metric",
+            "lang": "zh_cn"
+        }
+        r = requests.get(url, params=params)
+        data = r.json()
 
-    weather = data["weather"][0]["description"]
-    temp = data["main"]["temp"]
-    temp_min = data["main"]["temp_min"]
-    temp_max = data["main"]["temp_max"]
+        weather = data["weather"][0]["description"]
+        temp = data["main"]["temp"]
+        temp_min = data["main"]["temp_min"]
+        temp_max = data["main"]["temp_max"]
 
-    return temp, temp_min, temp_max, weather
+        return temp, temp_min, temp_max, weather
+    except:
+        return 0, 0, 0, "天气获取失败"
 
 
 # 随机早安开头
@@ -61,42 +65,26 @@ def get_lunar_birthday_countdown():
     today = datetime.now()
     year = today.year
 
-    # 尝试今年的农历生日
-    try:
-        lunar_birthday = LunarDate(year, 1, 30)
-        solar_birthday = lunar_birthday.toSolarDate()
-    except:
-        # 如果今年没有正月三十，自动改为正月二十九
-        lunar_birthday = LunarDate(year, 1, 29)
-        solar_birthday = lunar_birthday.toSolarDate()
-
-    # 如果今年已经过了，算明年
-    if solar_birthday < today.date():
-        year += 1
+    def get_solar_date(y):
         try:
-            lunar_birthday = LunarDate(year, 1, 30)
-            solar_birthday = lunar_birthday.toSolarDate()
+            lunar = LunarDate(y, LUNAR_MONTH, LUNAR_DAY)
+            return lunar.toSolarDate()
         except:
-            lunar_birthday = LunarDate(year, 1, 29)
-            solar_birthday = lunar_birthday.toSolarDate()
+            # 如果当年没有这个农历日期（比如正月三十不存在）
+            return None
+
+    solar_birthday = get_solar_date(year)
+
+    # 如果今年没有这个农历日期或已经过了，算明年
+    if not solar_birthday or solar_birthday < today.date():
+        year += 1
+        solar_birthday = get_solar_date(year)
 
     return (datetime.combine(solar_birthday, datetime.min.time()) - today).days
 
 # 母女天数
 def get_love_days():
     return (datetime.now() - START_DATE).days
-
-
-# 生日倒计时
-def get_birthday_countdown():
-    now = datetime.now()
-    birthday = datetime(now.year, BIRTHDAY_MONTH, BIRTHDAY_DAY)
-
-    if birthday < now:
-        birthday = birthday.replace(year=now.year + 1)
-
-    return (birthday - now).days
-
 
 # 随机鼓励语（不连续重复）
 def get_random_poetry():
@@ -162,7 +150,7 @@ def main():
 
     festival_tip = get_festival()
     love_days = get_love_days()
-    birthday_left = get_birthday_countdown()
+    birthday_left = get_lunar_birthday_countdown()
     poetry = get_random_poetry()
     greeting = random_greeting()
 
@@ -170,7 +158,7 @@ def main():
 {greeting}
 
 📅 今天是{today} {weekday}
-📍 地区：天津
+📍 地区：{CITY}
 🌤 今日天气：{weather}
 🌡 当前温度：{temp}℃
 🔺 最高气温：{temp_max}℃
@@ -193,3 +181,4 @@ def main():
     print(message)
 
     send_wechat(message)
+
