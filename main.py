@@ -18,25 +18,44 @@ LUNAR_DAY = 30
 # 获取天气
 def get_weather():
     try:
-        url = "https://api.openweathermap.org/data/2.5/weather"
+        url = "https://api.openweathermap.org/data/2.5/forecast"
         params = {
             "q": CITY,
             "appid": WEATHER_API_KEY,
             "units": "metric",
             "lang": "zh_cn"
         }
+
         r = requests.get(url, params=params)
         data = r.json()
 
-        weather = data["weather"][0]["description"]
-        temp = data["main"]["temp"]
-        temp_min = data["main"]["temp_min"]
-        temp_max = data["main"]["temp_max"]
+        if data.get("cod") != "200":
+            return 0, 0, 0, "天气获取失败", 0
 
-        return temp, temp_min, temp_max, weather
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        temps = []
+        pops = []
+        weather_desc = ""
+
+        for item in data["list"]:
+            if item["dt_txt"].startswith(today_str):
+                temps.append(item["main"]["temp"])
+                pops.append(item.get("pop", 0))
+                weather_desc = item["weather"][0]["description"]
+
+        if not temps:
+            return 0, 0, 0, "天气获取失败", 0
+
+        temp = sum(temps) / len(temps)
+        temp_min = min(temps)
+        temp_max = max(temps)
+        rain_probability = int(max(pops) * 100)
+
+        return round(temp, 1), round(temp_min, 1), round(temp_max, 1), weather_desc, rain_probability
+
     except:
-        return 0, 0, 0, "天气获取失败"
-
+        return 0, 0, 0, "天气获取失败", 0
 
 # 随机早安开头
 def random_greeting():
@@ -84,7 +103,9 @@ def get_lunar_birthday_countdown():
 
 # 母女天数
 def get_love_days():
-    return (datetime.now() - START_DATE).days
+    today = datetime.now().date()
+    start = START_DATE.date()
+    return (today - start).days
 
 # 随机鼓励语（不连续重复）
 def get_random_poetry():
@@ -114,19 +135,26 @@ def get_random_poetry():
 
 # 发送微信
 def send_wechat(message):
-    url = f"https://sctapi.ftqq.com/{SENDKEY}.send"
-    data = {
-        "title": "妈妈的每日问候",
-        "desp": message
-    }
-    requests.post(url, data=data)
+    if not SENDKEY:
+        print("SENDKEY 未设置，跳过发送")
+        return
+
+    try:
+        url = f"https://sctapi.ftqq.com/{SENDKEY}.send"
+        data = {
+            "title": "妈妈的每日问候",
+            "desp": message
+        }
+        requests.post(url, data=data)
+    except Exception as e:
+        print("发送失败：", e)
 
 
 def main():
     today = datetime.now().strftime("%Y-%m-%d")
     weekday_map = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
     weekday = weekday_map[datetime.now().weekday()]
-    temp, temp_min, temp_max, weather = get_weather()
+    temp, temp_min, temp_max, weather, rain_probability = get_weather()
 
     # ===== 天气逻辑 =====
     temp_diff = temp_max - temp_min
@@ -136,10 +164,12 @@ def main():
     else:
         diff_tip = ""
 
-    if "雨" in weather:
-        rain_tip = "☔ 今天可能下雨，记得带伞。"
+    if rain_probability >= 50:
+        rain_tip = f"☔ 今日降雨概率 {rain_probability}% ，记得带伞。"
+    elif rain_probability >= 30:
+        rain_tip = f"🌦 今日降雨概率 {rain_probability}% ，可能会有小雨。"
     else:
-        rain_tip = ""
+        rain_tip = f"🌤 今日降雨概率 {rain_probability}% 。"
 
     if temp_max >= 35:
         extreme_tip = "🔥 天气炎热，注意防暑降温。"
@@ -151,6 +181,10 @@ def main():
     festival_tip = get_festival()
     love_days = get_love_days()
     birthday_left = get_lunar_birthday_countdown()
+    if birthday_left == 0:
+        birthday_text = "🎉 今天是妈妈的生日！生日快乐 🎂🎂🎂"
+    else:
+        birthday_text = f"🎂 距离妈妈农历生日还有 {birthday_left} 天"
     poetry = get_random_poetry()
     greeting = random_greeting()
 
@@ -163,9 +197,10 @@ def main():
 🌡 当前温度：{temp}℃
 🔺 最高气温：{temp_max}℃
 🔻 最低气温：{temp_min}℃
+🌧 降雨概率：{rain_probability}%
 
 💕 今天是你我做母女的第 {love_days} 天
-🎂 距离你的生日还有 {birthday_left} 天
+{birthday_text}
 
 {diff_tip}
 {rain_tip}
@@ -181,4 +216,5 @@ def main():
     print(message)
 
     send_wechat(message)
+
 
