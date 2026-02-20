@@ -145,7 +145,12 @@ def send_wechat(message):
             "title": "妈妈的每日问候",
             "desp": message
         }
-        requests.post(url, data=data)
+
+        response = requests.post(url, data=data)
+
+        print("Server响应状态码:", response.status_code)
+        print("Server返回内容:", response.text)
+
     except Exception as e:
         print("发送失败：", e)
 
@@ -216,5 +221,6 @@ def main():
     print(message)
 
     send_wechat(message)
+
 
 
