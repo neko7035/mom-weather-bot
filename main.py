@@ -2,13 +2,14 @@ import os
 import requests
 import random
 from datetime import datetime
+from lunardate import LunarDate
 
 SENDKEY = os.getenv("SENDKEY_MOM")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 # ====== 你的基础信息（修改这里） ======
 CITY = "天津"
-START_DATE = datetime(1995, 5, 20)  # 改成真实母女纪念日
+START_DATE = datetime(1995, 12, 8)  # 改成真实母女纪念日
 BIRTHDAY_MONTH = 3
 BIRTHDAY_DAY = 3
 # =====================================
@@ -55,7 +56,31 @@ def get_festival():
 
     today_md = datetime.now().strftime("%m-%d")
     return festivals.get(today_md, "")
+    
+def get_lunar_birthday_countdown():
+    today = datetime.now()
+    year = today.year
 
+    # 尝试今年的农历生日
+    try:
+        lunar_birthday = LunarDate(year, 1, 30)
+        solar_birthday = lunar_birthday.toSolarDate()
+    except:
+        # 如果今年没有正月三十，自动改为正月二十九
+        lunar_birthday = LunarDate(year, 1, 29)
+        solar_birthday = lunar_birthday.toSolarDate()
+
+    # 如果今年已经过了，算明年
+    if solar_birthday < today.date():
+        year += 1
+        try:
+            lunar_birthday = LunarDate(year, 1, 30)
+            solar_birthday = lunar_birthday.toSolarDate()
+        except:
+            lunar_birthday = LunarDate(year, 1, 29)
+            solar_birthday = lunar_birthday.toSolarDate()
+
+    return (datetime.combine(solar_birthday, datetime.min.time()) - today).days
 
 # 母女天数
 def get_love_days():
@@ -111,7 +136,7 @@ def send_wechat(message):
 
 def main():
     today = datetime.now().strftime("%Y-%m-%d")
-    weekday_map = ["星期一"，“星期二”，“星期三”，“星期四”，“星期五”，“星期六”，“星期日”]
+    weekday_map = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
     weekday = weekday_map[datetime.now().weekday()]
     temp, temp_min, temp_max, weather = get_weather()
 
@@ -141,8 +166,8 @@ def main():
     poetry = get_random_poetry()
     greeting = random_greeting()
 
-message = f"""
-妈妈，早上好呀🌞
+    message = f"""
+{greeting}
 
 📅 今天是{today} {weekday}
 📍 地区：天津
@@ -153,7 +178,6 @@ message = f"""
 
 💕 今天是你我做母女的第 {love_days} 天
 🎂 距离你的生日还有 {birthday_left} 天
-💖 今天也要开心哦～
 
 {diff_tip}
 {rain_tip}
@@ -169,7 +193,3 @@ message = f"""
     print(message)
 
     send_wechat(message)
-
-
-if __name__ == "__main__":
-    main()
