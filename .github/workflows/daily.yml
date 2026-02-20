@@ -1,0 +1,40 @@
+name: Daily Mom Weather
+
+on:
+  schedule:
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run script
+        run: python main.py
+        env:
+          SENDKEY_MOM: ${{ secrets.SENDKEY_MOM }}
+          SENDKEY_ME: ${{ secrets.SENDKEY_ME }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+
+      - name: Commit last_poetry update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_poetry.txt
+          git commit -m "Update last_poetry" || echo "No changes to commit"
+          git push
