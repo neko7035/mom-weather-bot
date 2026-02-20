@@ -54,7 +54,8 @@ def get_weather():
 
         return round(temp, 1), round(temp_min, 1), round(temp_max, 1), weather_desc, rain_probability
 
-    except:
+    except Exception as e:
+        print("天气获取异常:", e)
         return 0, 0, 0, "天气获取失败", 0
 
 # 随机早安开头
@@ -174,7 +175,7 @@ def main():
     elif rain_probability >= 30:
         rain_tip = f"🌦 今日降雨概率 {rain_probability}% ，可能会有小雨。"
     else:
-        rain_tip = f"🌤 今日降雨概率 {rain_probability}% 。"
+        rain_tip = ""
 
     if temp_max >= 35:
         extreme_tip = "🔥 天气炎热，注意防暑降温。"
@@ -186,44 +187,56 @@ def main():
     festival_tip = get_festival()
     love_days = get_love_days()
     birthday_left = get_lunar_birthday_countdown()
+
     if birthday_left == 0:
         birthday_text = "🎉 今天是妈妈的生日！生日快乐 🎂🎂🎂"
     else:
         birthday_text = f"🎂 距离妈妈农历生日还有 {birthday_left} 天"
+
     poetry = get_random_poetry()
     greeting = random_greeting()
 
-    message = f"""
-{greeting}
+    # ===== 构造天气块 =====
+    weather_lines = [
+        f"🌤 今日天气：{weather}",
+        f"🌡 当前温度：{temp}℃",
+        f"🔺 最高气温：{temp_max}℃",
+        f"🔻 最低气温：{temp_min}℃",
+        f"🌧 降雨概率：{rain_probability}%"
+    ]
 
-📅 今天是{today} {weekday}
-📍 地区：{CITY}
-🌤 今日天气：{weather}
-🌡 当前温度：{temp}℃
-🔺 最高气温：{temp_max}℃
-🔻 最低气温：{temp_min}℃
-🌧 降雨概率：{rain_probability}%
+    weather_block = "\n".join(weather_lines)
 
-💕 今天是你我做母女的第 {love_days} 天
-{birthday_text}
+    # ===== 构造提示块（过滤空行）=====
+    extra_lines = "\n".join(
+        line for line in [
+            diff_tip,
+            rain_tip,
+            extreme_tip,
+            festival_tip
+        ] if line
+    )
 
-{diff_tip}
-{rain_tip}
-{extreme_tip}
-{festival_tip}
-
-——————————
-
-💛 {poetry}
-"""
+    # ===== 构造最终消息 =====
+    message = "\n\n".join(
+        part for part in [
+            greeting,
+            f"📅 今天是{today} {weekday}\n📍 地区：{CITY}",
+            weather_block,
+            f"💕 今天是你我做母女的第 {love_days} 天\n{birthday_text}",
+            extra_lines,
+            "——————————",
+            f"💛 {poetry}"
+        ] if part
+    )
 
     print("准备发送消息...")
     print(message)
 
     send_wechat(message)
-
 if __name__ == "__main__":
     main()
+
 
 
 
