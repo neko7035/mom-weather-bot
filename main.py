@@ -222,5 +222,9 @@ def main():
 
     send_wechat(message)
 
+if __name__ == "__main__":
+    main()
+
+
 
 
