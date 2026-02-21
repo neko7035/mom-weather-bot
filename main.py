@@ -12,7 +12,8 @@ def now():
 SENDKEY = os.getenv("SENDKEY_MOM")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
-CITY = "Tianjin"
+LAT = 39.0842
+LON = 117.2000
 START_DATE = datetime(1995, 12, 8)
 LUNAR_MONTH = 1
 LUNAR_DAY = 30
@@ -22,7 +23,8 @@ def get_weather():
     try:
         url = "https://api.openweathermap.org/data/2.5/forecast"
         params = {
-            "q": f"{CITY},cn",
+            "lat": LAT,
+            "lon": LON,
             "appid": WEATHER_API_KEY,
             "units": "metric",
             "lang": "zh_cn"
@@ -155,7 +157,7 @@ def main():
     message = "\n\n".join([p for p in [
         random.choice(["妈妈早安 🌞","妈妈早安 🌷","早安妈妈 💛"]),
         f"📅 {today} {weekday}\n",
-        f"📍 {CITY}\n",
+        f"📍 天津\n",
         weather_block,
         f"💕 今天是你我做母女的第 {get_love_days()} 天\n", 
         f"{birthday_text}\n",
@@ -170,5 +172,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
