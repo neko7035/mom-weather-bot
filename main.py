@@ -134,27 +134,28 @@ def main():
 
     temp, tmin, tmax, weather, rain = get_weather()
 
-    diff_tip = "🌬 今天温差有点大，记得多穿一点。" if tmax - tmin >= 8 else ""
-    rain_tip = "☔ 记得带伞。" if rain >= 50 else ""
-    hot_tip = "🔥 注意防暑降温。" if tmax >= 35 else ""
-    cold_tip = "❄ 注意保暖。" if tmin <= 5 else ""
+    diff_tip = "🌬 今天温差有点大，记得多穿一点哟！" if tmax - tmin >= 8 else ""
+    rain_tip = "☔ 出门记得带伞哟！别感冒啦！" if rain >= 50 else ""
+    hot_tip = "🔥 注意防暑降温，别中暑了哟！" if tmax >= 35 else ""
+    cold_tip = "❄ 注意保暖，别冻感冒啦！" if tmin <= 5 else ""
 
     birthday_left = get_lunar_birthday_countdown()
-    birthday_text = "🎉 今天是妈妈生日！🎂" if birthday_left == 0 else f"🎂 距离农历生日还有 {birthday_left} 天"
+    birthday_text = "🎉 今天是妈妈的生日！🎂\n" if birthday_left == 0 else f"🎂 距离妈妈的生日还有 {birthday_left} 天\n"
 
     weather_block = "\n".join([
-        f"🌤 今日天气：{weather}",
-        f"🌡 当前温度：{temp}℃",
-        f"🔺 最高气温：{tmax}℃",
-        f"🔻 最低气温：{tmin}℃",
-        f"🌧 降雨概率：{rain}%"
+        f"🌤 今日天气：{weather}\n",
+        f"🌡 当前温度：{temp}℃\n",
+        f"🔺 最高气温：{tmax}℃\n",
+        f"🔻 最低气温：{tmin}℃\n",
+        f"🌧 降雨概率：{rain}%\n"
     ])
 
     extra = "\n".join([l for l in [diff_tip, rain_tip, hot_tip, cold_tip, get_festival()] if l])
 
     message = "\n\n".join([p for p in [
-        random.choice(["妈妈早安 ☀","妈妈早安 🌷","早安妈妈 💛"]),
-        f"📅 {today} {weekday}\n📍 {CITY}",
+        random.choice(["妈妈早安 🌞","妈妈早安 🌷","早安妈妈 💛"]),
+        f"📅 {today} {weekday}\n",
+        f"📍 {CITY}\n",
         weather_block,
         f"💕 今天是你我做母女的第 {get_love_days()} 天\n", 
         f"{birthday_text}\n",
@@ -169,4 +170,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
