@@ -10,7 +10,7 @@ def now():
     return datetime.now(JST)
 
 SENDKEY = os.getenv("SENDKEY_MOM")
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+QWEATHER_KEY = os.getenv("QWEATHER_KEY")
 
 LAT = 39.0842
 LON = 117.2000
@@ -21,46 +21,51 @@ LUNAR_DAY = 30
 
 def get_weather():
     try:
-        url = "https://api.openweathermap.org/data/2.5/forecast"
         params = {
-            "lat": LAT,
-            "lon": LON,
-            "appid": WEATHER_API_KEY,
-            "units": "metric",
-            "lang": "zh_cn"
+            "location": "117.2000,39.0842",
+            "key": QWEATHER_KEY
         }
 
-        r = requests.get(url, params=params)
-        data = r.json()
+        # 实况
+        r_now = requests.get(
+            "https://devapi.qweather.com/v7/weather/now",
+            params=params
+        )
+        data_now = r_now.json()
 
-        if data.get("cod") != "200":
-            return 0, 0, 0, "天气获取失败", 0
+        if data_now.get("code") != "200":
+            print(data_now)
+            return 0,0,0,"天气获取失败",0,0
 
-        today_str = now().strftime("%Y-%m-%d")
+        current_temp = float(data_now["now"]["temp"])
+        feels_like = float(data_now["now"]["feelsLike"])
+        weather_desc = data_now["now"]["text"]
 
-        temps = []
-        pops = []
-        weather_desc = ""
+        # 3天预报
+        r_forecast = requests.get(
+            "https://devapi.qweather.com/v7/weather/3d",
+            params=params
+        )
+        data_forecast = r_forecast.json()
 
-        for item in data["list"]:
-            if item["dt_txt"].startswith(today_str):
-                temps.append(item["main"]["temp"])
-                pops.append(item.get("pop", 0))
-                weather_desc = item["weather"][0]["description"]
+        today_data = data_forecast["daily"][0]
+        temp_max = float(today_data["tempMax"])
+        temp_min = float(today_data["tempMin"])
 
-        if not temps:
-            return 0, 0, 0, "天气获取失败", 0
+        # AQI
+        r_air = requests.get(
+            "https://devapi.qweather.com/v7/air/now",
+            params=params
+        )
+        data_air = r_air.json()
 
-        temp = sum(temps) / len(temps)
-        temp_min = min(temps)
-        temp_max = max(temps)
-        rain_probability = int(max(pops) * 100)
+        aqi = data_air["now"]["aqi"]
 
-        return round(temp, 1), round(temp_min, 1), round(temp_max, 1), weather_desc, rain_probability
+        return current_temp, temp_min, temp_max, weather_desc, feels_like, aqi
 
     except Exception as e:
         print("天气获取异常:", e)
-        return 0, 0, 0, "天气获取失败", 0
+        return 0,0,0,"天气获取失败",0,0
 
 
 def get_festival():
@@ -172,6 +177,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
