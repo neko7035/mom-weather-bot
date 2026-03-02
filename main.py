@@ -22,11 +22,11 @@ LUNAR_DAY = 30
 def get_weather():
     try:
         params = {
-            "location": "117.2000,39.0842",
+            "location": f"{LON},{LAT}",
             "key": QWEATHER_KEY
         }
 
-        # 实况
+        # 实况天气
         r_now = requests.get(
             "https://devapi.qweather.com/v7/weather/now",
             params=params
@@ -35,7 +35,7 @@ def get_weather():
 
         if data_now.get("code") != "200":
             print(data_now)
-            return 0,0,0,"天气获取失败",0,0
+            return 0,0,0,"天气获取失败",0,0,0
 
         current_temp = float(data_now["now"]["temp"])
         feels_like = float(data_now["now"]["feelsLike"])
@@ -51,6 +51,8 @@ def get_weather():
         today_data = data_forecast["daily"][0]
         temp_max = float(today_data["tempMax"])
         temp_min = float(today_data["tempMin"])
+        precip = float(today_data.get("precip", 0))   # 🌧 降水量 mm
+        pop = float(today_data.get("pop", 0))         # 🌦 降雨概率 %
 
         # AQI
         r_air = requests.get(
@@ -58,14 +60,13 @@ def get_weather():
             params=params
         )
         data_air = r_air.json()
-
         aqi = data_air["now"]["aqi"]
 
-        return current_temp, temp_min, temp_max, weather_desc, feels_like, aqi
+        return current_temp, temp_min, temp_max, weather_desc, feels_like, aqi, precip, pop
 
     except Exception as e:
         print("天气获取异常:", e)
-        return 0,0,0,"天气获取失败",0,0
+        return 0,0,0,"天气获取失败",0,0,0,0
 
 
 def get_festival():
@@ -139,12 +140,23 @@ def main():
     today = current.strftime("%Y-%m-%d")
     weekday = ["星期一","星期二","星期三","星期四","星期五","星期六","星期日"][current.weekday()]
 
-    temp, tmin, tmax, weather, rain = get_weather()
+    temp, tmin, tmax, weather, feels_like, aqi, precip, pop = get_weather()
 
     diff_tip = "🌬 今天温差有点大，记得多穿一点哟！" if tmax - tmin >= 8 else ""
-    rain_tip = "☔ 出门记得带伞哟！别感冒啦！" if rain >= 50 else ""
+    rain_tip = ""
+    if precip >= 50:
+        rain_tip = "🌧 今天是暴雨级别，尽量减少外出，注意安全！"
+    elif precip >= 25:
+        rain_tip = "🌧 今天雨比较大，出门一定要带伞哦！"
+    elif precip >= 5:
+        rain_tip = "🌦 今天可能会下雨，带把伞更安心~"
+    
     hot_tip = "🔥 注意防暑降温，别中暑了哟！" if tmax >= 35 else ""
     cold_tip = "❄ 注意保暖，别冻感冒啦！" if tmin <= 5 else ""
+    
+    snow_tip = ""
+    if "雪" in weather:
+        snow_tip = "❄ 今天可能下雪，路滑注意慢行~"
 
     birthday_left = get_lunar_birthday_countdown()
     birthday_text = "🎉 今天是妈妈的生日！🎂\n" if birthday_left == 0 else f"🎂 距离妈妈的生日还有 {birthday_left} 天\n"
@@ -152,12 +164,24 @@ def main():
     weather_block = "\n".join([
         f"🌤 今日天气：{weather}\n",
         f"🌡 当前温度：{temp}℃\n",
+        f"🤗 体感温度：{feels_like}℃\n",
         f"🔺 最高气温：{tmax}℃\n",
         f"🔻 最低气温：{tmin}℃\n",
-        f"🌧 降雨概率：{rain}%\n"
+        f"🌧 降水量：{precip} mm\n",
+        f"☁ 降雨概率：{pop}%\n",
+        f"🌫 空气质量 AQI：{aqi}\n"
     ])
 
-    extra = "\n".join([l for l in [diff_tip, rain_tip, hot_tip, cold_tip, get_festival()] if l])
+    extra = "\n".join([
+        l for l in [
+            diff_tip,
+            rain_tip,
+            hot_tip,
+            cold_tip,
+            snow_tip,
+            get_festival()
+        ] if l
+    ])
 
     message = "\n\n".join([p for p in [
         random.choice(["妈妈早安 🌞","妈妈早安 🌷","早安妈妈 💛"]),
@@ -177,6 +201,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
