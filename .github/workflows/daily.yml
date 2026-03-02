@@ -29,7 +29,7 @@ jobs:
         env:
           SENDKEY_MOM: ${{ secrets.SENDKEY_MOM }}
           SENDKEY_ME: ${{ secrets.SENDKEY_ME }}
-          WEATHER_API_KEY: ${{ secrets.QWEATHER_KEY }}
+          QWEATHER_KEY: ${{ secrets.QWEATHER_KEY }}
 
       - name: Commit last_poetry update
         run: |
