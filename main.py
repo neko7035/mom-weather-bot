@@ -28,14 +28,14 @@ def get_weather():
 
         # 实况天气
         r_now = requests.get(
-            "https://devapi.qweather.com/v7/weather/now",
+            "https://api.qweather.com",
             params=params
         )
         data_now = r_now.json()
 
         if data_now.get("code") != "200":
             print(data_now)
-            return 0,0,0,"天气获取失败",0,0,0
+            return 0,0,0,"天气获取失败",0,0,0,0
 
         current_temp = float(data_now["now"]["temp"])
         feels_like = float(data_now["now"]["feelsLike"])
@@ -43,7 +43,7 @@ def get_weather():
 
         # 3天预报
         r_forecast = requests.get(
-            "https://devapi.qweather.com/v7/weather/3d",
+            "https://api.qweather.com",
             params=params
         )
         data_forecast = r_forecast.json()
@@ -56,7 +56,7 @@ def get_weather():
 
         # AQI
         r_air = requests.get(
-            "https://devapi.qweather.com/v7/air/now",
+            "https://api.qweather.com",
             params=params
         )
         data_air = r_air.json()
@@ -201,6 +201,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
