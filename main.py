@@ -32,6 +32,8 @@ def get_weather():
             params=params
         )
         data_now = r_now.json()
+        print("NOW接口返回：", data_now)
+        print("KEY:", QWEATHER_KEY)
 
         if data_now.get("code") != "200":
             print(data_now)
@@ -201,6 +203,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
